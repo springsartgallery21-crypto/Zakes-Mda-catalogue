@@ -4,13 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exhibition Catalogue</title>
-    
-    <!-- Stable production styles for the 3D book canvas matrix -->
-    <link rel="stylesheet" href="https://jsdelivr.net">
-    
-    <!-- Structural button fonts for navigation controls -->
-    <link rel="stylesheet" href="https://jsdelivr.net">
-    
     <style>
         html, body {
             margin: 0;
@@ -23,16 +16,14 @@
             flex-direction: column;
             overflow: hidden;
         }
-
         header {
             width: 100%;
             padding: 15px 0;
             text-align: center;
             background-color: #1a1a1a;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             z-index: 10;
         }
-
         .catalogue-title {
             color: #ffffff;
             margin: 0;
@@ -41,24 +32,14 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-
-        /* Responsive container forcing book elements to scale properly */
-        #flipbook-viewport {
+        #viewport-container {
             flex: 1;
-            width: 100vw;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             box-sizing: border-box;
-        }
-
-        /* The core wrapper targeting the DearFlip engine script */
-        ._df_book {
-            width: 100%;
-            height: 100%;
-            max-width: 1200px; /* Optimal layout ratio for side-by-side spreads */
-            max-height: 80vh;
         }
     </style>
 </head>
@@ -68,14 +49,18 @@
         <h1 class="catalogue-title">Exhibition Catalogue</h1>
     </header>
 
-    <div id="flipbook-viewport">
-        <!-- 'source="catalogue.pdf"' points straight to the asset sharing your repo root -->
-        <div class="_df_book" source="catalogue.pdf" id="exhibition-book"></div>
+    <div id="viewport-container">
+        <!-- Native Browser PDF Viewer -->
+        <object data="catalogue.pdf" type="application/pdf" width="100%" height="100%" style="border: 2px solid #333; border-radius: 8px; max-width: 1200px; max-height: 85vh;">
+            <!-- Fallback for browsers that block embedded PDFs -->
+            <div style="text-align: center; color: #fff; padding: 40px;">
+                <p>Your browser or network does not support embedded PDF files.</p>
+                <a href="catalogue.pdf" target="_blank" style="background-color: #ff5722; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 10px;">
+                    Click Here to Open & View Catalogue
+                </a>
+            </div>
+        </object>
     </div>
-
-    <!-- Essential backend core script frameworks -->
-    <script src="https://jquery.com"></script>
-    <script src="https://jsdelivr.net"></script>
 
 </body>
 </html>
