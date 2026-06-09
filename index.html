@@ -18,7 +18,7 @@
         }
         header {
             width: 100%;
-            padding: 12px 0;
+            padding: 10px 0;
             text-align: center;
             background-color: #1a1a1a;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -40,7 +40,7 @@
             align-items: center;
             padding: 0;
             box-sizing: border-box;
-            height: calc(100vh - 42px);
+            height: calc(100vh - 40px);
         }
         #viewport-container {
             width: 100%;
@@ -48,9 +48,6 @@
             background-color: #111111;
             border: none;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
         .native-viewer {
             width: 100%;
@@ -58,65 +55,6 @@
             border: none;
             display: block;
         }
-        
-        /* Mobile-Friendly Alternate Display card */
-        #mobile-fallback {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-            color: #ffffff;
-            box-sizing: border-box;
-            width: 100%;
-            height: 100%;
-        }
-        .mobile-card {
-            background-color: #1a1a1a;
-            padding: 35px 25px;
-            border-radius: 12px;
-            border: 1px solid #333;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .mobile-icon {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-        .mobile-card h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.4rem;
-            font-weight: 400;
-            letter-spacing: 1px;
-        }
-        .mobile-card p {
-            color: #aaa;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin: 0 0 25px 0;
-        }
-        .mobile-action-btn {
-            background-color: #ff5722;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1.05rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: background-color 0.2s;
-            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .mobile-action-btn:active {
-            background-color: #e64a19;
-        }
-
         .nav-controls {
             width: 100%;
             background-color: #1a1a1a;
@@ -158,19 +96,13 @@
             outline: none;
         }
 
-        /* Powerful responsive breakpoint layout check */
+        /* Mobile Breakpoint Optimizations */
         @media (max-width: 768px) {
-            #catalogue-frame {
-                display: none !important; /* Completely hides the broken iframe on mobile screens */
-            }
-            #mobile-fallback {
-                display: flex !important; /* Shows a gorgeous mobile action portal instead */
+            #viewport-container {
+                height: 93vh; /* Expands to use almost the entire mobile screen height */
             }
             .nav-controls {
-                display: none !important; /* Hides unneeded page turner buttons on mobile */
-            }
-            #viewport-container {
-                height: 88vh;
+                display: none !important; /* Hides manual navigation buttons since Google Viewer handles swipe paging natively */
             }
         }
     </style>
@@ -183,18 +115,8 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Normal widescreen viewer framework -->
-            <iframe id="catalogue-frame" class="native-viewer" src="catalogue.pdf#page=1&toolbar=0"></iframe>
-
-            <!-- Elite smartphone dynamic portal interface link -->
-            <div id="mobile-fallback">
-                <div class="mobile-card">
-                    <span class="mobile-icon">📖</span>
-                    <h2>Blessed by the Bees</h2>
-                    <p>Tap the button below to open and easily scroll through the 17-page digital solo exhibition catalogue on your phone.</p>
-                    <a href="catalogue.pdf" target="_blank" class="mobile-action-btn">Open & View Catalogue</a>
-                </div>
-            </div>
+            <!-- Iframe source dynamically controlled by device mode via script below -->
+            <iframe id="catalogue-frame" class="native-viewer" src=""></iframe>
         </div>
 
         <div class="nav-controls">
@@ -213,7 +135,7 @@
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
 
-        // Populate desktop dropdown selection menu elements
+        // Populate dropdown options
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -221,20 +143,26 @@
             dropdown.appendChild(opt);
         }
 
-        function updateCatalogView(newPage) {
-            // Verify device screen width; bypass execution array if loading on mobile screens
-            if (window.innerWidth <= 768) return;
+        function initViewer() {
+            // Check if user screen is mobile sizing
+            if (window.innerWidth <= 768) {
+                // Absolute path required for Google Document rendering microservice
+                const liveUrl = "https://github.io";
+                
+                // Mounts Google Viewer engine to parse the document on mobile browsers natively
+                document.getElementById('catalogue-frame').src = `https://google.com{encodeURIComponent(liveUrl)}&embedded=true`;
+            } else {
+                // Standard desktop native implementation
+                updateCatalogView(1);
+            }
+        }
 
+        function updateCatalogView(newPage) {
             currentPage = parseInt(newPage);
             dropdown.value = currentPage;
             
             const targetSrc = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
-            
-            // Overwrites the active iframe object container cleanly
-            const frame = document.getElementById('catalogue-frame');
-            if (frame) {
-                frame.src = targetSrc;
-            }
+            container.innerHTML = `<iframe id="catalogue-frame" class="native-viewer" src="${targetSrc}"></iframe>`;
             
             prevBtn.disabled = (currentPage === 1);
             nextBtn.disabled = (currentPage === totalPages);
@@ -244,8 +172,8 @@
         prevBtn.addEventListener('click', () => currentPage > 1 && updateCatalogView(currentPage - 1));
         nextBtn.addEventListener('click', () => currentPage < totalPages && updateCatalogView(currentPage + 1));
 
-        // Initial launch configuration sequence execution
-        updateCatalogView(1);
+        // Start initialization configuration
+        initViewer();
     </script>
 
 </body>
