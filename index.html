@@ -38,35 +38,28 @@
             align-items: center;
             position: relative;
         }
-        .desktop-viewer {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
         
-        /* High-Performance Mobile Image Viewport */
-        #mobile-gallery {
-            display: none;
+        /* High-Performance Universal Image Gallery Viewport */
+        #gallery-viewport {
+            display: flex;
             width: 100%;
             height: 100%;
             justify-content: center;
             align-items: center;
-            padding: 5px;
+            padding: 10px;
             box-sizing: border-box;
             position: relative;
         }
-        #mobile-img {
+        #catalogue-img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             border-radius: 4px;
         }
 
-        /* Transparent click overlays - ONLY visible and active on mobile touchscreens */
+        /* Transparent click overlays layout layer */
         .click-zone {
-            display: none;
             position: absolute;
             top: 0;
             height: 100%;
@@ -107,7 +100,7 @@
             background-color: #444;
             color: #888;
             cursor: not-allowed;
-            opacity: 0.5;
+            opacity: 0.4;
         }
         .page-select {
             background-color: #222;
@@ -120,22 +113,16 @@
             outline: none;
         }
 
-        /* Mobile Layout Breakpoint Adjustments */
+        /* Mobile Layout Spacing Adjustments */
         @media (max-width: 768px) {
-            #desktop-frame {
-                display: none !important;
-            }
-            #mobile-gallery {
-                display: flex !important;
-            }
-            .click-zone {
-                display: block !important; /* Activates click targets solely on small screens */
-            }
             #main-container {
                 justify-content: flex-start;
             }
             #viewport-container {
                 height: 78vh;
+            }
+            #gallery-viewport {
+                padding: 5px;
             }
             .nav-controls {
                 padding: 12px 0 20px 0;
@@ -149,14 +136,11 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Desktop Layout -->
-            <iframe id="desktop-frame" class="desktop-viewer" src=""></iframe>
-
-            <!-- Mobile Layout -->
-            <div id="mobile-gallery">
+            <!-- Universal Image Delivery Interface Component -->
+            <div id="gallery-viewport">
                 <div id="left-zone" class="click-zone"></div>
                 <div id="right-zone" class="click-zone"></div>
-                <img id="mobile-img" src="page (1).jpg" alt="Catalogue Page">
+                <img id="catalogue-img" src="page (1).jpg" alt="Catalogue Page">
             </div>
         </div>
 
@@ -174,12 +158,11 @@
         const dropdown = document.getElementById('page-dropdown');
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
-        const mobileImg = document.getElementById('mobile-img');
-        const desktopFrame = document.getElementById('desktop-frame');
+        const catalogueImg = document.getElementById('catalogue-img');
         const leftZone = document.getElementById('left-zone');
         const rightZone = document.getElementById('right-zone');
 
-        // Dynamically build clean options menu tags
+        // Populate dropdown choice elements seamlessly
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -187,40 +170,33 @@
             dropdown.appendChild(opt);
         }
 
-        function syncLayoutView(newPage) {
+        function updateCatalogView(newPage) {
             currentPage = parseInt(newPage);
             dropdown.value = currentPage;
             
-            if (window.innerWidth <= 768) {
-                mobileImg.src = `page (${currentPage}).jpg`;
-            } else {
-                // Completely unblocked desktop viewport container rendering format
-                desktopFrame.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
-            }
+            // Instantly swaps your structural InDesign images sequentially across all devices
+            catalogueImg.src = `page (${currentPage}).jpg`;
             
-            // Toggle active interface button selection states safely
+            // Manage button validation states
             prevBtn.disabled = (currentPage === 1);
             nextBtn.disabled = (currentPage === totalPages);
         }
 
-        // Handle page turn logic clicks cleanly over mobile zones
-        leftZone.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentPage > 1) syncLayoutView(currentPage - 1);
+        // Tap/Click zone navigation logic
+        leftZone.addEventListener('click', () => {
+            if (currentPage > 1) updateCatalogView(currentPage - 1);
         });
 
-        rightZone.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (currentPage < totalPages) syncLayoutView(currentPage + 1);
+        rightZone.addEventListener('click', () => {
+            if (currentPage < totalPages) updateCatalogView(currentPage + 1);
         });
 
-        dropdown.addEventListener('change', (e) => syncLayoutView(e.target.value));
-        prevBtn.addEventListener('click', () => currentPage > 1 && syncLayoutView(currentPage - 1));
-        nextBtn.addEventListener('click', () => currentPage < totalPages && syncLayoutView(currentPage + 1));
+        dropdown.addEventListener('change', (e) => updateCatalogView(e.target.value));
+        prevBtn.addEventListener('click', () => currentPage > 1 && updateCatalogView(currentPage - 1));
+        nextBtn.addEventListener('click', () => currentPage < totalPages && updateCatalogView(currentPage + 1));
 
         // Start initialization configuration rules
-        syncLayoutView(1);
-        window.addEventListener('resize', () => syncLayoutView(currentPage));
+        updateCatalogView(1);
     </script>
 
 </body>
