@@ -32,14 +32,57 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        #viewport-container {
+        #book-wrapper {
             flex: 1;
-            width: 100%;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
             box-sizing: border-box;
+        }
+        #viewport-container {
+            width: 100%;
+            max-width: 1000px;
+            height: 75vh;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: #222;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            z-index: 20;
+        }
+        .nav-btn {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover {
+            background-color: #e64a19;
+        }
+        .nav-btn:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .page-indicator {
+            color: #aaa;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -49,18 +92,53 @@
         <h1 class="catalogue-title">Exhibition Catalogue</h1>
     </header>
 
-    <div id="viewport-container">
-        <!-- Native Browser PDF Viewer -->
-        <object data="catalogue.pdf" type="application/pdf" width="100%" height="100%" style="border: 2px solid #333; border-radius: 8px; max-width: 1200px; max-height: 85vh;">
-            <!-- Fallback for browsers that block embedded PDFs -->
-            <div style="text-align: center; color: #fff; padding: 40px;">
-                <p>Your browser or network does not support embedded PDF files.</p>
-                <a href="catalogue.pdf" target="_blank" style="background-color: #ff5722; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 10px;">
-                    Click Here to Open & View Catalogue
-                </a>
-            </div>
-        </object>
+    <div id="book-wrapper">
+        <div id="viewport-container">
+            <!-- Native embed wrapper that handles page parameters independently -->
+            <iframe id="pdf-viewer" src="catalogue.pdf#page=1&toolbar=0&navpanes=0" width="100%" height="100%" style="border: none;"></iframe>
+        </div>
+
+        <div class="nav-controls">
+            <button id="prev-btn" class="nav-btn" disabled>◀ Previous</button>
+            <span id="page-num" class="page-indicator">Page 1 of 17</span>
+            <button id="next-btn" class="nav-btn">Next ▶</button>
+        </div>
     </div>
+
+    <script>
+        // Total pages in your Zakes Mda PDF document
+        const totalPages = 17;
+        let currentPage = 1;
+
+        const pdfViewer = document.getElementById('pdf-viewer');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const pageNumDisplay = document.getElementById('page-num');
+
+        function updateViewer() {
+            // Appends standard PDF open parameters to control page turns natively
+            pdfViewer.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0`;
+            pageNumDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
+            
+            // Enable/disable navigation buttons at boundaries
+            prevBtn.disabled = (currentPage === 1);
+            nextBtn.disabled = (currentPage === totalPages);
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updateViewer();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateViewer();
+            }
+        });
+    </script>
 
 </body>
 </html>
