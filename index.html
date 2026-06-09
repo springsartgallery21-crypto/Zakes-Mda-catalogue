@@ -163,27 +163,7 @@
         const rightZone = document.getElementById('right-zone');
 
         // Populate dropdown choice elements seamlessly
-        for (let i = 1; i <= totalPages; i++) {
-            let opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = `Page ${i} of ${totalPages}`;
-            dropdown.appendChild(opt);
-        }
-
-        function updateCatalogView(newPage) {
-            currentPage = parseInt(newPage);
-            dropdown.value = currentPage;
-            
-            // Instantly swaps your structural InDesign images sequentially across all devices
-            catalogueImg.src = `page (${currentPage}).jpg`;
-            
-            // Manage button validation states
-            prevBtn.disabled = (currentPage === 1);
-            nextBtn.disabled = (currentPage === totalPages);
-        }
-
-        // Tap/Click zone navigation logic
-        leftZone.addEventListener('click', () => {
+        for (let i = 1; i  {
             if (currentPage > 1) updateCatalogView(currentPage - 1);
         });
 
