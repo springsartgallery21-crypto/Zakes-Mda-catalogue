@@ -20,27 +20,30 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 0;
             box-sizing: border-box;
             height: 100vh;
+            position: relative;
         }
         #viewport-container {
             width: 100%;
-            height: 91vh; /* Expanded height since header is removed */
+            height: 90vh;
             background-color: #111111;
             border: none;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
         .desktop-viewer {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
+            pointer-events: none; /* Passes clicks through to our custom navigation areas */
         }
         
         /* High-Performance Mobile Image Viewport */
@@ -60,6 +63,19 @@
             box-shadow: 0 5px 20px rgba(0,0,0,0.6);
             border-radius: 4px;
         }
+
+        /* Transparent overlays allowing page flips by clicking the sides of the work */
+        .click-zone {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            z-index: 15;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent; /* Removes blue flash on mobile taps */
+        }
+        #left-zone { left: 0; }
+        #right-zone { right: 0; }
 
         .nav-controls {
             width: 100%;
@@ -102,7 +118,7 @@
             outline: none;
         }
 
-        /* Mobile Breakpoints */
+        /* Mobile Layout Modifications */
         @media (max-width: 768px) {
             #desktop-frame {
                 display: none !important;
@@ -110,11 +126,16 @@
             #mobile-gallery {
                 display: flex !important;
             }
+            #main-container {
+                justify-content: flex-start; /* Stacks everything from the top tightly */
+            }
             #viewport-container {
-                height: 86vh; /* Larger viewport space for standard phone screens */
+                height: 78vh; /* Reduces vertical height to pull navigation control row upward */
             }
             .nav-controls {
-                padding: 15px 0 25px 0;
+                padding: 12px 0; /* Brings panel immediately flush under mobile canvas */
+                background-color: #111111; /* Blends cleanly into matching bottom margins */
+                box-shadow: none;
             }
         }
     </style>
@@ -123,10 +144,14 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Desktop Layout -->
+            <!-- Left and Right Hidden Transparent Target Anchors -->
+            <div id="left-zone" class="click-zone"></div>
+            <div id="right-zone" class="click-zone"></div>
+
+            <!-- Desktop View -->
             <iframe id="desktop-frame" class="desktop-viewer" src=""></iframe>
 
-            <!-- Mobile Layout -->
+            <!-- Mobile View -->
             <div id="mobile-gallery">
                 <img id="mobile-img" src="page (1).jpg" alt="Catalogue Page">
             </div>
@@ -148,8 +173,10 @@
         const nextBtn = document.getElementById('next-page-btn');
         const mobileImg = document.getElementById('mobile-img');
         const desktopFrame = document.getElementById('desktop-frame');
+        const leftZone = document.getElementById('left-zone');
+        const rightZone = document.getElementById('right-zone');
 
-        // Setup dropdown options
+        // Build navigation selections
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -170,6 +197,15 @@
             prevBtn.disabled = (currentPage === 1);
             nextBtn.disabled = (currentPage === totalPages);
         }
+
+        // Click zone trigger math logic arrays
+        leftZone.addEventListener('click', () => {
+            if (currentPage > 1) syncLayoutView(currentPage - 1);
+        });
+
+        rightZone.addEventListener('click', () => {
+            if (currentPage < totalPages) syncLayoutView(currentPage + 1);
+        });
 
         dropdown.addEventListener('change', (e) => syncLayoutView(e.target.value));
         prevBtn.addEventListener('click', () => currentPage > 1 && syncLayoutView(currentPage - 1));
