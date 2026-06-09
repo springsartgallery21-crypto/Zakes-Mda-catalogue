@@ -163,7 +163,36 @@
         const rightZone = document.getElementById('right-zone');
 
         // Populate dropdown choice elements seamlessly
-        for (let i = 1; i  {
+        for (let i = 1; i <= totalPages; i++) {
+            let opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Page ${i} of ${totalPages}`;
+            dropdown.appendChild(opt);
+        }
+
+        function updateCatalogView(newPage) {
+            currentPage = parseInt(newPage);
+            dropdown.value = currentPage;
+            
+            // Generates a clean text string for the file path name
+            const rawFileName = `page (${currentPage}).jpg`;
+            
+            // Forces characters like spaces and brackets to encode properly for mobile browsers
+            const securePath = encodeURI(rawFileName);
+            
+            // Generates a unique tracking token to clear system background memory
+            const cacheBuster = new Date().getTime();
+            
+            // Merges the variables to deliver a perfectly formatted URL path
+            catalogueImg.src = `${securePath}?cb=${cacheBuster}`;
+            
+            // Manage button validation states
+            prevBtn.disabled = (currentPage === 1);
+            nextBtn.disabled = (currentPage === totalPages);
+        }
+
+        // Tap/Click zone navigation logic
+        leftZone.addEventListener('click', () => {
             if (currentPage > 1) updateCatalogView(currentPage - 1);
         });
 
