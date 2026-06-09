@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exhibition Catalogue</title>
+    
+    <!-- Stable production styles for the 3D book canvas matrix -->
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    
+    <!-- Structural button fonts for navigation controls -->
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111111;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            background-color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .catalogue-title {
+            color: #ffffff;
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive container forcing book elements to scale properly */
+        #flipbook-viewport {
+            flex: 1;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* The core wrapper targeting the DearFlip engine script */
+        ._df_book {
+            width: 100%;
+            height: 100%;
+            max-width: 1200px; /* Optimal layout ratio for side-by-side spreads */
+            max-height: 80vh;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 class="catalogue-title">Exhibition Catalogue</h1>
+    </header>
+
+    <div id="flipbook-viewport">
+        <!-- 'source="catalogue.pdf"' points straight to the asset sharing your repo root -->
+        <div class="_df_book" source="catalogue.pdf" id="exhibition-book"></div>
+    </div>
+
+    <!-- Essential backend core script frameworks -->
+    <script src="https://jquery.com"></script>
+    <script src="https://jsdelivr.net"></script>
+
+</body>
+</html>
