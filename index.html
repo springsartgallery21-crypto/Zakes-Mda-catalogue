@@ -48,13 +48,35 @@
             background-color: #111111;
             border: none;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .native-viewer {
+        .desktop-viewer {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
         }
+        
+        /* High-Performance Mobile Image Viewport */
+        #mobile-gallery {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        #mobile-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+            border-radius: 4px;
+        }
+
         .nav-controls {
             width: 100%;
             background-color: #1a1a1a;
@@ -96,13 +118,16 @@
             outline: none;
         }
 
-        /* Mobile Breakpoint Optimizations */
+        /* Swaps display profiles based on layout scaling properties */
         @media (max-width: 768px) {
-            #viewport-container {
-                height: 93vh; /* Expands to use almost the entire mobile screen height */
+            #desktop-frame {
+                display: none !important;
             }
-            .nav-controls {
-                display: none !important; /* Hides manual navigation buttons since Google Viewer handles swipe paging natively */
+            #mobile-gallery {
+                display: flex !important;
+            }
+            #viewport-container {
+                height: 80vh;
             }
         }
     </style>
@@ -115,14 +140,19 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Iframe source dynamically controlled by device mode via script below -->
-            <iframe id="catalogue-frame" class="native-viewer" src=""></iframe>
+            <!-- Desktop Native PDF Render Portal -->
+            <iframe id="desktop-frame" class="desktop-viewer" src=""></iframe>
+
+            <!-- Mobile Image Delivery Component -->
+            <div id="mobile-gallery">
+                <img id="mobile-img" src="page (1).jpg" alt="Catalogue Page">
+            </div>
         </div>
 
         <div class="nav-controls">
-            <button id="prev-page-btn" class="nav-btn">◀ Previous Page</button>
+            <button id="prev-page-btn" class="nav-btn">◀ Previous</button>
             <select id="page-dropdown" class="page-select"></select>
-            <button id="next-page-btn" class="nav-btn">Next Page ▶</button>
+            <button id="next-page-btn" class="nav-btn">Next ▶</button>
         </div>
     </div>
 
@@ -130,12 +160,13 @@
         const totalPages = 17;
         let currentPage = 1;
         
-        const container = document.getElementById('viewport-container');
         const dropdown = document.getElementById('page-dropdown');
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
+        const mobileImg = document.getElementById('mobile-img');
+        const desktopFrame = document.getElementById('desktop-frame');
 
-        // Populate dropdown options
+        // Create options mapping Page 1 to 17
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -143,37 +174,28 @@
             dropdown.appendChild(opt);
         }
 
-        function initViewer() {
-            // Check if user screen is mobile sizing
-            if (window.innerWidth <= 768) {
-                // Absolute path required for Google Document rendering microservice
-                const liveUrl = "https://github.io";
-                
-                // Mounts Google Viewer engine to parse the document on mobile browsers natively
-                document.getElementById('catalogue-frame').src = `https://google.com{encodeURIComponent(liveUrl)}&embedded=true`;
-            } else {
-                // Standard desktop native implementation
-                updateCatalogView(1);
-            }
-        }
-
-        function updateCatalogView(newPage) {
+        function syncLayoutView(newPage) {
             currentPage = parseInt(newPage);
             dropdown.value = currentPage;
             
-            const targetSrc = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
-            container.innerHTML = `<iframe id="catalogue-frame" class="native-viewer" src="${targetSrc}"></iframe>`;
+            if (window.innerWidth <= 768) {
+                // Matches your exact Windows naming sequence structure: "page (X).jpg"
+                mobileImg.src = `page (${currentPage}).jpg`;
+            } else {
+                // Native fallback tracking configuration for desktop monitors
+                desktopFrame.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
+            }
             
             prevBtn.disabled = (currentPage === 1);
             nextBtn.disabled = (currentPage === totalPages);
         }
 
-        dropdown.addEventListener('change', (e) => updateCatalogView(e.target.value));
-        prevBtn.addEventListener('click', () => currentPage > 1 && updateCatalogView(currentPage - 1));
-        nextBtn.addEventListener('click', () => currentPage < totalPages && updateCatalogView(currentPage + 1));
+        dropdown.addEventListener('change', (e) => syncLayoutView(e.target.value));
+        prevBtn.addEventListener('click', () => currentPage > 1 && syncLayoutView(currentPage - 1));
+        nextBtn.addEventListener('click', () => currentPage < totalPages && syncLayoutView(currentPage + 1));
 
-        // Start initialization configuration
-        initViewer();
+        // Initialize display configuration state values
+        syncLayoutView(1);
     </script>
 
 </body>
