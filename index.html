@@ -68,14 +68,19 @@
         <h1 class="catalogue-title">Exhibition Catalogue</h1>
     </header>
 
-    <div id="flipbook-viewport">
-        <!-- 'source="catalogue.pdf"' points straight to the asset sharing your repo root -->
-        <div class="_df_book" source="catalogue.pdf" id="exhibition-book"></div>
-    </div>
+   <div id="flipbook-viewport" style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px 0;">
+    <!-- Embedded Native Browser PDF Viewer -->
+    <object data="catalogue.pdf" type="application/pdf" width="90%" height="800px" style="border: 2px solid #333; border-radius: 8px;">
+        <!-- Fallback message with direct download link if browser has embed disabled -->
+        <div style="text-align: center; color: #fff; padding: 40px;">
+            <p>Your browser does not support embedded PDFs.</p>
+            <a href="catalogue.pdf" target="_blank" style="background-color: #ff5722; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 10px;">
+                Open & View Catalogue PDF
+            </a>
+        </div>
+    </object>
+</div>
 
-    <!-- Essential backend core script frameworks -->
-    <script src="https://jquery.com"></script>
-    <script src="https://jsdelivr.net"></script>
 
 </body>
 </html>
