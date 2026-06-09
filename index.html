@@ -18,7 +18,7 @@
         }
         header {
             width: 100%;
-            padding: 15px 0;
+            padding: 12px 0;
             text-align: center;
             background-color: #1a1a1a;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
@@ -27,7 +27,7 @@
         .catalogue-title {
             color: #ffffff;
             margin: 0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 300;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -40,23 +40,36 @@
             align-items: center;
             padding: 10px;
             box-sizing: border-box;
+            height: calc(100vh - 50px);
         }
         #viewport-container {
             width: 100%;
-            max-width: 1000px;
-            height: 75vh;
-            border: 2px solid #333;
-            border-radius: 8px;
-            background-color: #222;
+            max-width: 1200px;
+            height: 76vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 6px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        /* Canvas scales cleanly to fit exactly within parent viewport limits */
+        #pdf-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
         }
         .nav-controls {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 20px;
-            margin-top: 15px;
+            margin-top: 12px;
+            margin-bottom: 5px;
             z-index: 20;
         }
         .nav-btn {
@@ -77,14 +90,23 @@
             background-color: #444;
             color: #888;
             cursor: not-allowed;
-            opacity: 0.5;
+            opacity: 0.4;
         }
         .page-indicator {
-            color: #aaa;
+            color: #bbb;
             font-size: 0.95rem;
             letter-spacing: 1px;
+            min-width: 120px;
+            text-align: center;
+        }
+        #loading-text {
+            position: absolute;
+            color: #fff;
+            font-size: 1.1rem;
         }
     </style>
+    <!-- Embedded local sandbox fallback of Mozilla PDF.js Engine -->
+    <script src="https://cloudflare.com"></script>
 </head>
 <body>
 
@@ -94,49 +116,114 @@
 
     <div id="book-wrapper">
         <div id="viewport-container">
-            <!-- Native embed wrapper that handles page parameters independently -->
-            <iframe id="pdf-viewer" src="catalogue.pdf#page=1&toolbar=0&navpanes=0" width="100%" height="100%" style="border: none;"></iframe>
+            <div id="loading-text">Loading Catalogue...</div>
+            <canvas id="pdf-canvas"></canvas>
         </div>
 
         <div class="nav-controls">
             <button id="prev-btn" class="nav-btn" disabled>◀ Previous</button>
-            <span id="page-num" class="page-indicator">Page 1 of 17</span>
-            <button id="next-btn" class="nav-btn">Next ▶</button>
+            <span id="page-num" class="page-indicator">Loading...</span>
+            <button id="next-btn" class="nav-btn" disabled>Next ▶</button>
         </div>
     </div>
 
     <script>
-        // Total pages in your Zakes Mda PDF document
-        const totalPages = 17;
-        let currentPage = 1;
+        // Set worker source using same matching CDN script configuration source
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
 
-        const pdfViewer = document.getElementById('pdf-viewer');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const pageNumDisplay = document.getElementById('page-num');
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5, // Crisp rendering pixel multiplier
+            canvas = document.getElementById('pdf-canvas'),
+            ctx = canvas.getContext('2d');
 
-        function updateViewer() {
-            // Appends standard PDF open parameters to control page turns natively
-            pdfViewer.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0`;
-            pageNumDisplay.textContent = `Page ${currentPage} of ${totalPages}`;
+        /**
+         * Get page info from document, resize canvas dynamically, and render page.
+         */
+        function renderPage(num) {
+            pageRendering = true;
+            document.getElementById('loading-text').style.display = 'block';
+
+            // Fetch the specific requested document slice page
+            pdfDoc.getPage(num).then(function(page) {
+                let viewport = page.getViewport({scale: scale});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // Render PDF page into canvas context
+                let renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                let renderTask = page.render(renderContext);
+
+                // Wait for rendering to finish
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    document.getElementById('loading-text').style.display = 'none';
+                    if (pageNumPending !== null) {
+                        // New page rendering is pending
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+
+            // Update UI page turn numbers
+            document.getElementById('page-num').textContent = `Page ${num} of ${pdfDoc.numPages}`;
             
-            // Enable/disable navigation buttons at boundaries
-            prevBtn.disabled = (currentPage === 1);
-            nextBtn.disabled = (currentPage === totalPages);
+            // Toggle button interactive states safely
+            document.getElementById('prev-btn').disabled = (num <= 1);
+            document.getElementById('next-btn').disabled = (num >= pdfDoc.numPages);
         }
 
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                updateViewer();
+        /**
+         * If another page rendering in progress, waits until the rendering is finisched.
+         */
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
             }
-        });
+        }
 
-        nextBtn.addEventListener('click', () => {
-            if (currentPage < totalPages) {
-                currentPage++;
-                updateViewer();
+        /**
+         * Displays previous page.
+         */
+        function onPrevPage() {
+            if (pageNum <= 1) {
+                return;
             }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+        document.getElementById('prev-btn').addEventListener('click', onPrevPage);
+
+        /**
+         * Displays next page.
+         */
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+        document.getElementById('next-btn').addEventListener('click', onNextPage);
+
+        /**
+         * Asynchronously downloads PDF.
+         */
+        pdfjsLib.getDocument('catalogue.pdf').promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            document.getElementById('next-btn').disabled = false;
+            renderPage(pageNum);
+        }).catch(function(error) {
+            console.error('Error loading PDF: ', error);
+            document.getElementById('loading-text').textContent = 'Error displaying book layout.';
         });
     </script>
 
