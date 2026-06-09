@@ -43,7 +43,6 @@
             height: 100%;
             border: none;
             display: block;
-            pointer-events: none; /* Passes clicks through to our custom navigation areas */
         }
         
         /* High-Performance Mobile Image Viewport */
@@ -55,6 +54,7 @@
             align-items: center;
             padding: 5px;
             box-sizing: border-box;
+            position: relative;
         }
         #mobile-img {
             max-width: 100%;
@@ -64,15 +64,16 @@
             border-radius: 4px;
         }
 
-        /* Transparent overlays allowing page flips by clicking the sides of the work */
+        /* Transparent click overlays - ONLY visible and active on mobile touchscreens */
         .click-zone {
+            display: none;
             position: absolute;
             top: 0;
             height: 100%;
             width: 50%;
-            z-index: 15;
+            z-index: 25;
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent; /* Removes blue flash on mobile taps */
+            -webkit-tap-highlight-color: transparent;
         }
         #left-zone { left: 0; }
         #right-zone { right: 0; }
@@ -86,7 +87,7 @@
             gap: 15px;
             padding: 12px 0;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-            z-index: 20;
+            z-index: 30;
         }
         .nav-btn {
             background-color: #ff5722;
@@ -106,6 +107,7 @@
             background-color: #444;
             color: #888;
             cursor: not-allowed;
+            opacity: 0.5;
         }
         .page-select {
             background-color: #222;
@@ -118,7 +120,7 @@
             outline: none;
         }
 
-        /* Mobile Layout Modifications */
+        /* Mobile Layout Breakpoint Adjustments */
         @media (max-width: 768px) {
             #desktop-frame {
                 display: none !important;
@@ -126,15 +128,18 @@
             #mobile-gallery {
                 display: flex !important;
             }
+            .click-zone {
+                display: block !important; /* Activates click targets solely on small screens */
+            }
             #main-container {
-                justify-content: flex-start; /* Stacks everything from the top tightly */
+                justify-content: flex-start;
             }
             #viewport-container {
-                height: 78vh; /* Reduces vertical height to pull navigation control row upward */
+                height: 78vh;
             }
             .nav-controls {
-                padding: 12px 0; /* Brings panel immediately flush under mobile canvas */
-                background-color: #111111; /* Blends cleanly into matching bottom margins */
+                padding: 12px 0 20px 0;
+                background-color: #111111;
                 box-shadow: none;
             }
         }
@@ -144,15 +149,13 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Left and Right Hidden Transparent Target Anchors -->
-            <div id="left-zone" class="click-zone"></div>
-            <div id="right-zone" class="click-zone"></div>
-
-            <!-- Desktop View -->
+            <!-- Desktop Layout -->
             <iframe id="desktop-frame" class="desktop-viewer" src=""></iframe>
 
-            <!-- Mobile View -->
+            <!-- Mobile Layout -->
             <div id="mobile-gallery">
+                <div id="left-zone" class="click-zone"></div>
+                <div id="right-zone" class="click-zone"></div>
                 <img id="mobile-img" src="page (1).jpg" alt="Catalogue Page">
             </div>
         </div>
@@ -176,7 +179,7 @@
         const leftZone = document.getElementById('left-zone');
         const rightZone = document.getElementById('right-zone');
 
-        // Build navigation selections
+        // Dynamically build clean options menu tags
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -191,19 +194,23 @@
             if (window.innerWidth <= 768) {
                 mobileImg.src = `page (${currentPage}).jpg`;
             } else {
+                // Completely unblocked desktop viewport container rendering format
                 desktopFrame.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
             }
             
+            // Toggle active interface button selection states safely
             prevBtn.disabled = (currentPage === 1);
             nextBtn.disabled = (currentPage === totalPages);
         }
 
-        // Click zone trigger math logic arrays
-        leftZone.addEventListener('click', () => {
+        // Handle page turn logic clicks cleanly over mobile zones
+        leftZone.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (currentPage > 1) syncLayoutView(currentPage - 1);
         });
 
-        rightZone.addEventListener('click', () => {
+        rightZone.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (currentPage < totalPages) syncLayoutView(currentPage + 1);
         });
 
@@ -211,6 +218,7 @@
         prevBtn.addEventListener('click', () => currentPage > 1 && syncLayoutView(currentPage - 1));
         nextBtn.addEventListener('click', () => currentPage < totalPages && syncLayoutView(currentPage + 1));
 
+        // Start initialization configuration rules
         syncLayoutView(1);
         window.addEventListener('resize', () => syncLayoutView(currentPage));
     </script>
