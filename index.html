@@ -14,7 +14,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Stops browser screen scrolling completely */
         }
         header {
             width: 100%;
@@ -38,40 +38,40 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 15px;
+            padding: 0; /* Removed padding completely to go border-to-border */
             box-sizing: border-box;
-            /* Dynamically calculates height based on remaining window space */
             height: calc(100vh - 40px);
         }
         #viewport-container {
             width: 100%;
-            max-width: 1600px; /* Expanded from 1100px for a massive widescreen layout */
-            height: 82vh;       /* Increased from 72vh to fill the vertical viewport */
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 6px;
+            max-width: 100%; /* Spans 100% of the horizontal screen length */
+            height: 87vh;    /* Expanded to leave just enough room for buttons at the bottom */
+            background-color: #111111;
+            border: none;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .native-viewer {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
         .nav-controls {
+            width: 100%;
+            background-color: #1a1a1a; /* Clean footer panel look */
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 15px;
-            margin-top: 8px;
-            margin-bottom: 4px;
+            padding: 10px 0; /* Padding inside the control panel */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
             z-index: 20;
         }
         .nav-btn {
             background-color: #ff5722;
             color: white;
             border: none;
-            padding: 8px 20px;
+            padding: 8px 22px;
             font-size: 0.95rem;
             font-weight: bold;
             border-radius: 4px;
@@ -113,7 +113,7 @@
             <button id="prev-page-btn" class="nav-btn">◀ Previous Page</button>
             
             <select id="page-dropdown" class="page-select">
-                <!-- Dropdown populated by script -->
+                <!-- Javascript will load the sequence paths -->
             </select>
             
             <button id="next-page-btn" class="nav-btn">Next Page ▶</button>
@@ -140,7 +140,8 @@
             currentPage = parseInt(newPage);
             dropdown.value = currentPage;
             
-            const targetSrc = `catalogue.pdf#page=${currentPage}&toolbar=0`;
+            // Appends standard view configuration tags to force edge fit inside iframe rendering
+            const targetSrc = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
             container.innerHTML = `<iframe id="catalogue-frame" class="native-viewer" src="${targetSrc}"></iframe>`;
             
             prevBtn.disabled = (currentPage === 1);
