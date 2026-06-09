@@ -118,7 +118,7 @@
             outline: none;
         }
 
-        /* Swaps display profiles based on layout scaling properties */
+        /* Swaps viewports instantly when detected on mobile screens */
         @media (max-width: 768px) {
             #desktop-frame {
                 display: none !important;
@@ -140,15 +140,16 @@
 
     <div id="main-container">
         <div id="viewport-container">
-            <!-- Desktop Native PDF Render Portal -->
+            <!-- Desktop Layout -->
             <iframe id="desktop-frame" class="desktop-viewer" src=""></iframe>
 
-            <!-- Mobile Image Delivery Component -->
+            <!-- Mobile Layout linking your exact InDesign filenames -->
             <div id="mobile-gallery">
                 <img id="mobile-img" src="page (1).jpg" alt="Catalogue Page">
             </div>
         </div>
 
+        <!-- Combined control layout bar that controls both views simultaneously -->
         <div class="nav-controls">
             <button id="prev-page-btn" class="nav-btn">◀ Previous</button>
             <select id="page-dropdown" class="page-select"></select>
@@ -166,7 +167,7 @@
         const mobileImg = document.getElementById('mobile-img');
         const desktopFrame = document.getElementById('desktop-frame');
 
-        // Create options mapping Page 1 to 17
+        // Setup dropdown options
         for (let i = 1; i <= totalPages; i++) {
             let opt = document.createElement('option');
             opt.value = i;
@@ -178,11 +179,12 @@
             currentPage = parseInt(newPage);
             dropdown.value = currentPage;
             
+            // Checks layout view modes instantly
             if (window.innerWidth <= 768) {
-                // Matches your exact Windows naming sequence structure: "page (X).jpg"
+                // Dynamically changes image source based on active page number
                 mobileImg.src = `page (${currentPage}).jpg`;
             } else {
-                // Native fallback tracking configuration for desktop monitors
+                // Standard desktop native implementation
                 desktopFrame.src = `catalogue.pdf#page=${currentPage}&toolbar=0&navpanes=0&view=Fit`;
             }
             
@@ -194,8 +196,11 @@
         prevBtn.addEventListener('click', () => currentPage > 1 && syncLayoutView(currentPage - 1));
         nextBtn.addEventListener('click', () => currentPage < totalPages && syncLayoutView(currentPage + 1));
 
-        // Initialize display configuration state values
+        // Start initialization configuration rules
         syncLayoutView(1);
+
+        // Track window adjustment changes dynamically
+        window.addEventListener('resize', () => syncLayoutView(currentPage));
     </script>
 
 </body>
